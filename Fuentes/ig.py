@@ -47,46 +47,33 @@ def convertir_y(Y, c, m):
     return k
 
 # Dispersion entropy
-def entropy_disp(data_class,config):  
-    m = 3   # dimensión del vector-embedding
-    tau = 2 # distancia entre elementos consecutivos
-    c = 3   # número de símbolos
+def entropy_disp(data_class,config): 
+    config = np.array(config) 
+    m = int(config[0])  # dimensión del vector-embedding
+    tau = int(config[1]) # distancia entre elementos consecutivos
+    c = int(config[2])   # número de símbolos
     N = data_class.shape[0]
 
     
-    if len(data_class.shape) > 1:
-        for columna in  data_class:
-            data_class[columna] = norm_data_sigmoidal(data_class[columna])
-
-    else:
-        data_class = norm_data_sigmoidal(data_class)
-
+    data_class = norm_data_sigmoidal(data_class)
+    #print(data_class)
     data_class.to_csv("norm_data_sigmoidal.csv", index=False, header=False)
     #print(data_class)
     data_class = np.array(data_class)
     
-    if len(data_class.shape) > 1:
-        X = [create_embedding_vectors(data_class[:, i], m, tau) for i in range(data_class.shape[1])]
-        Y = np.array([[map_to_symbols(X[i, j], c) for j in range(X.shape[1])] for i in range(X.shape[0])])    
-        k_valores = np.array([[convertir_y(Y[i, j], c, m) for j in range(Y.shape[1])] for i in range(Y.shape[0])]) 
 
-    else:
-        X = create_embedding_vectors(data_class, m, tau)
-        print(X)
-        Y = map_to_symbols(X, c)
-        print(Y)
-        k_valores = convertir_y(Y, c, m)
-        k_valores = np.array(k_valores[0])
-        print(k_valores)
-
+    X = create_embedding_vectors(data_class, m, tau)
+    #print(X)
+    Y = map_to_symbols(X, c)
+    #print(Y)
+    k_valores = convertir_y(Y, c, m)
+    k_valores = np.array(k_valores[0])
+    #print(k_valores)
     
-    # print(embedded_data[1])
-    # print(Y[1])
-    # print(k_valores[1])
     
     # Paso 5: Aplanar el vector Y
     k_valores_flattened = k_valores.reshape(-1)
-    print(k_valores_flattened.shape)
+    #print(k_valores_flattened.shape)
 
 
     # Paso 6: Calcular la probabilidad de cada patrón de dispersión
@@ -106,10 +93,53 @@ def entropy_disp(data_class,config):
     nde = de / np.log2(r)
     print(de,nde)
 
-    return()
+    return de
+
+# Entropía condicional H(Y|X)
+def conditional_entropy_disp(X, Y, config, bins):
+    # Normalizar y crear bins en X
+    X = norm_data_sigmoidal(X)
+    print("aca",X)
+    n_bins = int(bins)  # cantidad de bins para discretizar X
+    X_binned = np.digitize(X, bins=np.linspace(0, 1, n_bins + 1))  # Binear X en n_bins
+    
+    # Para cada bin en X, calcular la entropía de Y
+    cond_entropy = 0
+    total_samples = len(Y)
+    for bin_val in range(1, n_bins + 1):
+        # Seleccionar muestras donde X está en el bin actual
+        indices = np.where(X_binned == bin_val)[0]
+        print(indices)
+        if len(indices) == 0:
+            continue
+        
+        # Calcular entropía de Y en el subconjunto donde X está en el bin actual
+        Y_subset = Y[indices]
+        print("hola",np.array(Y_subset))
+        subset_entropy = entropy_disp(Y_subset, config)
+        
+        # Ponderar la entropía del subconjunto
+        cond_entropy += (len(indices) / total_samples) * subset_entropy
+    
+    return cond_entropy
 
 #Information gain
-def inform_gain(data_class): 
+def inform_gain(data_class,config): 
+    X = np.array(data_class.iloc[:,:-1])
+    Y = data_class.iloc[:,-1]
+    
+    #hy = entropy_disp(Y,config)
+    bins = np.sqrt(data_class.shape[0])
+
+    # Aplicamos la función para cada columna de X
+    n_features = X.shape[1]
+    hyx_total = []
+    # Sumar H(Y|X_i) para cada columna X_i de X
+    for i in range(n_features):
+        hyx_i = conditional_entropy_disp(X[:, i], Y, config,bins)
+        hyx_total.append(hyx_i)
+
+    print(hyx_total)   
     return()
     
 # Load dataClass 
@@ -121,10 +151,12 @@ def load_data():
 # Beginning ...
 def main():    
     config, data_class = load_data()
-    Y = data_class.iloc[:,-1]
-    print(Y)
-    entropy_disp(Y,config)
+    inform_gain(data_class, config)
        
 if __name__ == '__main__':   
 	 main()
+
+
+
+
 
