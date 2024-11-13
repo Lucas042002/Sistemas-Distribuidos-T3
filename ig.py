@@ -107,8 +107,9 @@ def conditional_entropy_disp(X, Y, c,m):
 #Information gain
 def inform_gain(data_class,config): 
     m = int(config[0][0])  # dimensión del vector-embedding
+    tau = int(config[0][1]) #numero de tau
     c = int(config[0][2])   # número de símbolos
-
+    top_K = int(config[0][3]) #Top k indicadores
     X = data_class.iloc[:,:-1]
     Y = data_class.iloc[:,-1]
 
@@ -117,7 +118,6 @@ def inform_gain(data_class,config):
     print(prob_clase_Y)
     hy = entropy(prob_clase_Y,c,m)
     #Paso 2: Calcular la entropia condicional de Y dado x
-    #Cant_column = 
     information_gain = []
     for i in range(X.shape[1]):
         hyx_i = conditional_entropy_disp(X.iloc[:, i], Y, c,m)
@@ -125,11 +125,26 @@ def inform_gain(data_class,config):
         information_gain.append(ig_i)
 
     fig, ax = plt.subplots()
-    plt.bar(range(len(information_gain)), information_gain, color='green')
+    plt.stem(range(len(information_gain)), information_gain, basefmt=" ", linefmt="green", markerfmt="go")    
     plt.xlabel('Caracteristica')
     plt.ylabel('IG')
     plt.title('IG por Caracteristica')
     plt.show()
+
+    #
+    top_indices = np.sort(information_gain)[-top_K:][::-1]  
+    # PARA LA PARTE DEL Y PONER LOS INDICES DE LOS TOP_K
+    plt.stem(range(len(top_indices)), top_indices, basefmt=" ", linefmt="green", markerfmt="go")    
+    plt.xlabel('Característica')
+    plt.ylabel('IG')
+    plt.title('IG por Característica')
+    plt.show()
+
+    # Guardar los indices de las caracteristicas y los top_K mas relevantes
+    # X = X.iloc[:, top_K]
+    # data_procesado = pd.concat([X, Y], axis=1)
+    # data_procesado.to_csv('DataIG.csv', index=False)
+
     return()
     
 # Load dataClass 
