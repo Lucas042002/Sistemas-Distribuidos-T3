@@ -64,7 +64,7 @@ def separar_clases(data):
     guardar_datos_clase(datos_clase3, "class3.csv")
 
     print("Los archivos classe1.csv, class2.csv y class3.csv se han guardado con éxito.")
-    return np.array(Y_vector) , np.array(data_new)
+    return np.array(data_new)
 
 
 def pasar_a_numeros(raw_data):
@@ -89,11 +89,18 @@ def seleccionar_muestras(archivo_datos, archivo_indices, M):
     
     # Seleccionar las primeras M filas de los índices especificados
     indices_muestras = indices[:M] - 2
-    muestras_seleccionadas = datos.loc[indices_muestras]
-    
+    #Para ordenar las muestras
+    muestras_seleccionadas = datos.loc[indices_muestras].copy()
+    muestras_seleccionadas['index_original'] = indices_muestras.values  # Guardar los índices originales para ordenar después
+
     return muestras_seleccionadas
 
-def unir_clases(M):
+def unir_clases():
+
+    # Determinar el valor de M basado en el tamaño de idx_class1.csv
+    # indices_clase1 = pd.read_csv("DATA/idx_class1.csv", header=None).squeeze("columns")
+    # M = len(indices_clase1)
+    M = 2000
     # Seleccionar muestras para cada clase usando los primeros M índices dados
     muestras_clase1 = seleccionar_muestras("Data.csv", "DATA/idx_class1.csv", M)
     muestras_clase2 = seleccionar_muestras("Data.csv", "DATA/idx_class2.csv", M)
@@ -106,6 +113,13 @@ def unir_clases(M):
     # Unir (apilar) todas las muestras seleccionadas en un solo DataFrame
     data_combined = pd.concat([muestras_clase1, muestras_clase2, muestras_clase3], ignore_index=True)
     
+    # Ordenar el DataFrame combinado por 'index_original'
+    data_combined = data_combined.sort_values(by='index_original').reset_index(drop=True)
+    #print(data_combined)
+    # Eliminar la columna auxiliar 'index_original' antes de guardar
+    data_combined = data_combined.drop(columns=['index_original'])
+
+
     # Guardar el archivo combinado
     data_combined.to_csv("DataClasss.csv", index=False, header=False)
     print("Archivo 'DataClasss.csv' generado con éxito.")
@@ -118,10 +132,9 @@ def cargar_datos():
     raw_data = pd.read_csv(ruta_archivo, header=None)
     processed_data = pasar_a_numeros(raw_data)
     processed_data = np.array(processed_data)
-    y_vector, processed_data = separar_clases(processed_data)
+    processed_data = separar_clases(processed_data)
     guardar_array_a_csv(processed_data)  
-    m = 3
-    return unir_clases(m)
+    return unir_clases()
 
 def main():
     cargar_datos()
