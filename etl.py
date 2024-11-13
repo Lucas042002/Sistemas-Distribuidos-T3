@@ -9,9 +9,7 @@ import os
 
 # Load parameters from config.csv
 def config():
-    ruta_carpeta = os.path.join(os.path.expanduser("~"), "Desktop", "Prueba 3 SD")    
-    ruta_archivo = os.path.join(ruta_carpeta, "config.csv")
-    config = pd.read_csv(ruta_archivo, header=None)
+    config = pd.read_csv("config.csv", header=None)
     return config
 
 # Beginning 
@@ -70,8 +68,8 @@ def separar_clases(data):
 def pasar_a_numeros(raw_data):
     # Diccionarios para asignar valores numéricos a cada categoría
     protocolo_mapping = {'tcp': 1, 'udp': 2, 'icmp': 3}
-    servicio_mapping = {servicio: idx+1 for idx, servicio in enumerate(raw_data[2].unique())}
-    flag_mapping = {flag: idx+1 for idx, flag in enumerate(raw_data[3].unique())}
+    servicio_mapping = {servicio: idx for idx, servicio in enumerate(raw_data[2].unique())}
+    flag_mapping = {flag: idx for idx, flag in enumerate(raw_data[3].unique())}
 
     # Aplicar las conversiones utilizando el método .map()
     raw_data[1] = raw_data[1].map(protocolo_mapping)
@@ -91,7 +89,7 @@ def seleccionar_muestras(archivo_datos, archivo_indices, M):
     indices_muestras = indices[:M] - 2
     #Para ordenar las muestras
     muestras_seleccionadas = datos.loc[indices_muestras].copy()
-    muestras_seleccionadas['index_original'] = indices_muestras.values  # Guardar los índices originales para ordenar después
+    # muestras_seleccionadas['index_original'] = indices_muestras.values  # Guardar los índices originales para ordenar después
 
     return muestras_seleccionadas
 
@@ -102,9 +100,9 @@ def unir_clases():
     # M = len(indices_clase1)
     M = 2000
     # Seleccionar muestras para cada clase usando los primeros M índices dados
-    muestras_clase1 = seleccionar_muestras("Data.csv", "DATA/idx_class1.csv", M)
-    muestras_clase2 = seleccionar_muestras("Data.csv", "DATA/idx_class2.csv", M)
-    muestras_clase3 = seleccionar_muestras("Data.csv", "DATA/idx_class3.csv", M)
+    muestras_clase1 = seleccionar_muestras("Data.csv", "idx_class1.csv", M)
+    muestras_clase2 = seleccionar_muestras("Data.csv", "idx_class2.csv", M)
+    muestras_clase3 = seleccionar_muestras("Data.csv", "idx_class3.csv", M)
     muestras_clase1['clase'] = 1
     muestras_clase2['clase'] = 2
     muestras_clase3['clase'] = 3
@@ -112,13 +110,6 @@ def unir_clases():
     #AGREGAR EL Y_VECTOR FILTRADO #
     # Unir (apilar) todas las muestras seleccionadas en un solo DataFrame
     data_combined = pd.concat([muestras_clase1, muestras_clase2, muestras_clase3], ignore_index=True)
-    
-    # Ordenar el DataFrame combinado por 'index_original'
-    data_combined = data_combined.sort_values(by='index_original').reset_index(drop=True)
-    #print(data_combined)
-    # Eliminar la columna auxiliar 'index_original' antes de guardar
-    data_combined = data_combined.drop(columns=['index_original'])
-
 
     # Guardar el archivo combinado
     data_combined.to_csv("DataClasss.csv", index=False, header=False)
@@ -127,9 +118,7 @@ def unir_clases():
 
 
 def cargar_datos():
-    ruta_carpeta = os.path.join(os.path.expanduser("~"), "Desktop", "Prueba 3 SD", "DATA")    
-    ruta_archivo = os.path.join(ruta_carpeta, "KDDTrain.txt")
-    raw_data = pd.read_csv(ruta_archivo, header=None)
+    raw_data = pd.read_csv("KDDTrain.txt", header=None)
     processed_data = pasar_a_numeros(raw_data)
     processed_data = np.array(processed_data)
     processed_data = separar_clases(processed_data)
