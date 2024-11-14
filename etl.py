@@ -96,9 +96,8 @@ def seleccionar_muestras(archivo_datos, archivo_indices, M):
 def unir_clases():
 
     # Determinar el valor de M basado en el tamaño de idx_class1.csv
-    # indices_clase1 = pd.read_csv("DATA/idx_class1.csv", header=None).squeeze("columns")
-    # M = len(indices_clase1)
-    M = 2000
+    indices_clase1 = pd.read_csv("idx_class1.csv", header=None).squeeze("columns")
+    M = len(indices_clase1)
     # Seleccionar muestras para cada clase usando los primeros M índices dados
     muestras_clase1 = seleccionar_muestras("Data.csv", "idx_class1.csv", M)
     muestras_clase2 = seleccionar_muestras("Data.csv", "idx_class2.csv", M)
@@ -107,7 +106,6 @@ def unir_clases():
     muestras_clase2['clase'] = 2
     muestras_clase3['clase'] = 3
 
-    #AGREGAR EL Y_VECTOR FILTRADO #
     # Unir (apilar) todas las muestras seleccionadas en un solo DataFrame
     data_combined = pd.concat([muestras_clase1, muestras_clase2, muestras_clase3], ignore_index=True)
 
@@ -115,7 +113,6 @@ def unir_clases():
     data_combined.to_csv("DataClasss.csv", index=False, header=False)
     print("Archivo 'DataClasss.csv' generado con éxito.")
     return data_combined
-
 
 def cargar_datos():
     raw_data = pd.read_csv("KDDTrain.txt", header=None)

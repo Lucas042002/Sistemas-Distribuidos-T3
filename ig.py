@@ -48,12 +48,10 @@ def convertir_y(Y, c, m):
 def entropy(probabilities,c,m):
     r = c ** m
     #Calcular DE
-    de = -np.sum(probabilities * np.log2(probabilities))
+    de = -np.sum(probabilities * np.log2(probabilities) + 1e-10 )
     #Calcular la Entropía de Dispersión normalizada (nDE)
     nde = de / np.log2(r)
     return nde
-
-
 
 
 #Calcula la Dispersion entropy
@@ -111,8 +109,6 @@ def conditional_entropy_disp(X, Y, c, m, tau):
         #Calcula la frecuencia de las categorias segun el bin actual
         # Obtener las clases de las muestras en el bin actual
         categorias_en_bin = Y[dij].values  # Esto dará las clases directamente en el bin `j`
-        #frecuencia_categorias = Y[dij].value_counts(normalize=True).values
-        #print("Bin n:", j, categorias_en_bin)  
         Hyx = Hyx + (1/N * np.sum(dij) * entropy_disp(categorias_en_bin, c, m, tau))   
     return (Hyx)
 
@@ -126,14 +122,13 @@ def inform_gain(data_class,config):
     Y = data_class.iloc[:,-1] #Se filtran las clases del dataset
 
     #Se calcula las probabilidad de aparicion de las clases
-    #Paso 1: Calcular la entropia de dispersión de las etiquetas Y
+    #Calcular la entropia de dispersión de las etiquetas Y
     hy = entropy_disp(Y,c,m,tau)
     print(hy)
     #Calcular la ganancia de información
     information_gain = []
     for i in range(X.shape[1]):
         #Calcular la entropia condicional de Y dado x
-        #print("Caracteristica N°",i)
         hyx_i = conditional_entropy_disp(X.iloc[:, i], Y, c, m, tau)
         ig_i = hy - hyx_i
         information_gain.append(ig_i)
@@ -172,7 +167,7 @@ def inform_gain(data_class,config):
     data_ig = data_class.iloc[:, idx_sorted[:top_K]]
 
     # Guardar el nuevo dataset en un archivo CSV
-    data_ig.to_csv('DataIG.csv', index=False)
+    data_ig.to_csv('DataIG.csv', index=False, header = False)
 
     return()
     
